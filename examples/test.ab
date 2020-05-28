@@ -1,0 +1,36 @@
+func factorial(n):
+    if n == 1:
+        return 1
+    else:
+        return n * factorial(n - 1)
+j = 78
+a = factorial(10)
+g = {name :'olawumi',lang:'python'}
+write(g.lenght)
+h = [1,2,3,4,5]
+p = [7,8,9,0]
+write(h + p)
+try:
+    g.name
+catch n:
+    write('errrooooooooosssss')
+    write(n.message)
+
+write(5 <> 7)
+write(3**6)
+inb = ['ola','wumi','horlar','gooo','opiifd']
+write(inb[0])
+
+inb.foreach => num:
+    if num.lenght > 2 and num.begins('o'):
+        write(num)
+write(g.name)
+b,j = 7,9
+d = 'helloword'
+l = d.upper.lower
+write(l,'x' in l)
+9,2,3,4
+
+
+d= 7,8,9,56 ? 7==9: 8,5,6
+write(d)
