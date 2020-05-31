@@ -1,6 +1,6 @@
 import importlib
 from collections import namedtuple
-
+import os
 
 from abbey import ast
 from abbey._types import List, Dict,String
@@ -8,6 +8,7 @@ from abbey.utils import Environment
 from abbey._builtins import Builtins, Str, load_builtins
 from abbey.errors import * # import all exceptions
 from abbey import operators
+from abbey.importer import load_module
 
 nodes = {
     ast.Number: 'visit_number',
@@ -32,7 +33,8 @@ nodes = {
     ast.Use: "visit_use",
     ast.Break : "visit_break",
     ast.Continue :'visit_continue',
-    ast.LogicalOperator:'visit_logical'
+    ast.LogicalOperator:'visit_logical',
+    ast.Include:'visit_include'
 }
 BuiltinFunction = namedtuple('BuiltinFunction', ['params', 'body'])
 
@@ -77,7 +79,8 @@ class Return(Exception):
 
 class Interpreter:
 
-    def __init__(self,programs):
+    def __init__(self,programs,path=None):
+        self.path = path # current path of the file
         self.programs = programs
         self.nodes = {}
         self.env = None
@@ -313,20 +316,24 @@ class Interpreter:
 
         if isinstance(function,ast.Function):
             call_env = Environment(env, args)
-            kwargs = function.keywords.items()
-            # set default keywords to env
-            for k,v in kwargs:
-                v = self.visit_expression(v,env)
-                call_env.set(k,v)
-            for k,v in node.keywords.items():
-                # set keywords in function call to override
-                # default value in function defination
-                v = self.visit_expression(v,env)
-                call_env.set(k,v)
+            # function kwargs " func name(h=90)"
+            fun_kwargs = dict(zip(function.keywords.keys(), [self.visit_expression(value,env) for value in function.keywords.values()]))
+            # function call kwargs "name(h=87)"
+            call_kwargs = dict(zip(node.keywords.keys(), [self.visit_expression(value,env) for value in node.keywords.values()]))
+            # set kwargs in function to env
+            call_env.from_dict(fun_kwargs)
+            #set kwargs in function call to env to overide kwargs in function def.
+            call_env.from_dict(call_kwargs)
             try:
                 self.visit_statements(function.body, call_env)
             except Return as ret:
                 return ret.value
+            except Exception as e:
+                if hasattr(function,'import_'):
+                    #imported function,indicate the module name and line
+                    raise TypeError_(" %s , in file '%s' line %s "%(e.message,function.file,e.line),node.line)
+                raise TypeError_(e,e.line)
+
             else:
                 # no return in the function
                 return "None"
@@ -399,9 +406,50 @@ class Interpreter:
         try:
            mod = importlib.import_module(module)
         except ImportError:
-            raise TypeError_('couldn\'t find module,%s'%module,node.line)
-        name = alias or module # name to use in d environment if alisa is given use it else module name
+            raise TypeError_('couldn\'t find module, "%s" '%module,node.line)
+        name = alias or module # name to use in d environment if alis is given use it else module name
         return env.set(name,mod)
+
+
+    def visit_include(self,node,env):
+        func_name = node.function
+        file = node.file.rstrip('.ab')+'.ab'
+        #check if it is already in env before importing it
+        func = env.get(node.function)
+        if func:
+            setattr(func,'import_',True)
+            setattr(func,'file',file)
+            env.set(func_name,func)
+            return
+        if self.path is not None:
+            path = os.path.join(self.path,file)
+            try:
+                buff = open(path)
+                content = buff.read()
+                buff.close()
+            except:
+                raise TypeError_("module not found %s"%path,node.line)
+            try:
+                import_env= load_module(content,self)
+            except Exception as e:
+                if isinstance(e,AbbeyBaseError):
+                    column = 1
+                    if hasattr(e,'column') and e.column is not None:
+                        column = e.column
+                    raise AbbeyModuleError("%s"%(e.message),e.line,content.splitlines(),column,file)
+                # the exception must be instance of AbbeyBaseError
+                # if it is not, something bad occurs, so raise RuntimeError
+                raise RuntimeError(e)
+            else:
+                func = import_env.get(func_name)
+                if func is None:
+                    raise TypeError_('couldnt import "%s" from "%s" '%(func_name,path),node.line)
+                setattr(func,'import_',True) #to indicate it is an imported function
+                setattr(func,'file',path) # file where it is imported
+                env.set(func_name,func)
+
+
+
 
 
 

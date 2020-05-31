@@ -41,7 +41,7 @@ class Builtins:
 			return 
 		if len(node.arguements) != self.param_num:
 			given = len(node.arguements)
-			raise TypeError_('TypeError: {}() takes {} positional argument but {} were given '.format(self.name,self.param_num,given),node.line)
+			raise TypeError_('builtin function {}() takes {} positional argument but {} were given '.format(self.name,self.param_num,given),node.line)
 
 class Open(Builtins):
 	name = 'open'
@@ -51,7 +51,7 @@ class Open(Builtins):
 class Write(Builtins):
 	name = 'write'
 	param_num = '*'
-	callback = prints
+	callback = print
 
 class Square(Builtins):
 	name = 'sqrt'
@@ -74,7 +74,12 @@ class Slice(Builtins):
 	name = 'slice'
 	param_num = 3
 	callback = _slice
-builtins = [Write,Open,Square,Len,Int]
+
+class Input(Builtins):
+	name = 'input'
+	param_num ='*'
+	callback = input
+builtins = [Write,Open,Square,Len,Int,Input,Slice]
 def load_builtins(env):
 	for kls in builtins:
 		env.set(kls.name,kls())

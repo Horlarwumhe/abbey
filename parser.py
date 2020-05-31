@@ -19,7 +19,8 @@ statements = {
             "USE":'use',
             'IN':'in',
              'OR':'or',
-             'AND':'and'
+             'AND':'and',
+             'INCLUDE':'include'
             }
 expression =  {'NUMBER':"num" ,
               'STRING': "str",
@@ -311,7 +312,7 @@ class Expression(BaseParser):
         not_ = self.eat(tokens,"NOT")
         exp = self.parse_expression(tokens)
         if not exp:
-            raise ParserError("SyntaxError: ",not_.line)
+            raise ParserError("SyntaxError: ",not_)
         return ast.NotOperator(exp,not_.line)
 
     def subscript_expression(self,tokens,left):
@@ -399,9 +400,9 @@ class Expression(BaseParser):
 
 class Statement(BaseParser):
 
-    def block_parser(self,tokens,each=None):
+    def block_parser(self,tokens):
         self.eat(tokens,'NEWLINE', 'INDENT')
-        statements = self.parse(tokens,each)
+        statements = self.parse(tokens)
         self.eat(tokens,'DEDENT')
         return statements
 
@@ -440,7 +441,7 @@ class Statement(BaseParser):
                     params.append(id_token.value)
                     # params.append(tokens.current.value) if not keyword else None
         else:
-            self.eat(tokens,'NAME',msg='expect function parameters')
+            self.eat(tokens,'NAME')
         return params,keys
 
     def parse_function_statement(self,tokens):
@@ -573,7 +574,10 @@ class Statement(BaseParser):
             raise ParserError('break outside loop',tokens.current)
         line_num = tokens.current.line
         self.eat(tokens,"BREAK")
-        break_test = self.parse_expression(tokens)
+        break_test = None
+        if tokens.check_expected("QUE"):
+            self.eat(tokens,"QUE")
+            break_test = self.parse_expression(tokens)
         self.eat(tokens,"NEWLINE")
         return ast.Break(break_test,line_num)
 
@@ -582,7 +586,10 @@ class Statement(BaseParser):
             raise ParserError("continue outside loop",tokens.current.line)
         line_num = tokens.current.line
         self.eat(tokens,"CONTINUE")
-        continue_test = self.parse_expression(tokens)
+        continue_test = None
+        if tokens.check_expected("QUE"):
+            self.eat(tokens,"QUE")
+            continue_test = self.parse_expression(tokens)
         self.eat(tokens,"NEWLINE")
         return ast.Continue(continue_test,line_num)
 
@@ -634,6 +641,14 @@ class Statement(BaseParser):
             alias = self.eat(tokens,"NAME").value
         self.eat(tokens,'NEWLINE')
         return ast.Use(module,alias,line)
+
+    def parse_include_statement(self,tokens):
+        line_num = self.eat(tokens,'INCLUDE').line
+        func = self.eat(tokens,'NAME').value
+        self.eat(tokens,'IN')
+        file =  self.eat(tokens,'STRING').value
+        self.eat(tokens,"NEWLINE")
+        return ast.Include(func,file,line_num)
 
 
 

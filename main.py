@@ -5,10 +5,10 @@ import traceback
 sys.path.append(os.path.dirname(os.getcwd()))
 
 
-from abbey.interpreter import Interpreter
-from abbey.lexer import Lexer
-from abbey.tokens import Tokens
-from abbey.parser import Parser , Programs
+from abbey import Interpreter
+from abbey import Lexer
+from abbey import Tokens
+from abbey import Parser , Programs
 from abbey.utils import Environment
 from abbey.utils import report_syntax_error , report_error
 from abbey.errors import *
@@ -25,6 +25,7 @@ def create_argparse():
 env = Environment()
 def main():
 	args = create_argparse()
+	path = os.path.dirname(args.file)
 	try:
 		file = open(args.file).read()
 	except:
@@ -49,7 +50,7 @@ def main():
 		report_syntax_error(lexer, err)
 		return
 
-	code = Interpreter(program)
+	code = Interpreter(program,path)
 	code.create_env(env)
 
 	try:
@@ -60,6 +61,8 @@ def main():
 			return
 		report_error(lexer,e)
 		return
+	except AbbeyModuleError as err:
+		report_error (err,err)
 
 
 def test():

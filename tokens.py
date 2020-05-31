@@ -1,5 +1,5 @@
 from abbey.utils import Errormessage
-from abbey.errors import LexerError
+from abbey.errors import ParserError
 class Tokens(object):
 
     def __init__(self, tokens):
@@ -13,9 +13,11 @@ class Tokens(object):
             self.advance()
             if token.name != expected_name:
                 err = Errormessage().get_error(expected_name)
+                if msg:
+                    raise ParserError('{}'.format(msg), token)
                 if not err:
-                    raise LexerError('Expected {}, got {}'.format(expected_name, token.name), token.line, token.column)
-                raise LexerError('{}'.format(err), token.line, token.column)
+                    raise ParserError('Expected {}, got {}'.format(expected_name, token.name), token)
+                raise ParserError('{}'.format(err), token)
 
         return token
 
@@ -46,7 +48,7 @@ class Tokens(object):
             return self._tokens[self._pos]
         except IndexError:
             last_token = self._tokens[-1]
-            raise LexerError('Unexpected end of input', last_token.line, last_token.column)
+            raise ParserError('Unexpected end of input', last_token)
     def advance(self):
         try:
             self._pos += 1
@@ -60,7 +62,7 @@ class Tokens(object):
             return self._tokens[self._pos]
         except IndexError:
             last_token = self._tokens[-1]
-            raise LexerError('Unexpected end of input', last_token.line, last_token.column)
+            raise ParserError('Unexpected end of input', last_token)
     @property
     def prev(self):
         return self._tokens[self._pos-1]
@@ -68,7 +70,7 @@ class Tokens(object):
     def expect_end(self):
         if not self.is_end():
             token = self.current
-            raise LexerError('End expected', token.line, token.column)
+            raise ParserError('End expected', token)
 
     @property
     def seen_all(self):

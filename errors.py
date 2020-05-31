@@ -6,7 +6,10 @@ Exceptions and exception helpers.
 """
 ### exception during parsing
 
-class AbbeySyntaxError(Exception):
+class AbbeyBaseError(Exception):
+    ''' base errorfor all abbey errors
+    '''
+class AbbeySyntaxError(AbbeyBaseError):
 
     def __init__(self, message, line, column):
         super(AbbeySyntaxError, self).__init__(message)
@@ -26,7 +29,7 @@ class ParserError(AbbeySyntaxError):
         super(ParserError, self).__init__(message, token.line, token.column)
 
 ## exceptions during excecution
-class AbbeyError(Exception):
+class AbbeyError(AbbeyBaseError):
 
     def __init__(self, message, line=None, column=None):
         super(AbbeyError, self).__init__(message)
@@ -59,3 +62,12 @@ class IndexError_(AbbeyError):
         super().__init__(message,line,None)
 
 
+class AbbeyModuleError(AbbeySyntaxError):
+    """ exception when importing a module
+    """
+    def __init__(self,message,line,source_lines,column=1,file=''):
+        self.message = message
+        self.line = line
+        self.column = column
+        self.source_lines = source_lines
+        self.file = file

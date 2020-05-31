@@ -1,13 +1,13 @@
 Abbey
 =============
 
-Abbey is a Python-like programming language interpreter written in [python](https://www.python.org)
+Abbey is a Python-like  language interpreter written in [python](https://www.python.org)
 
 it is developed as hobby interpreter and for learning purpose
 
 
 
-Abbey is based on complete rewrite of [Abrvalg](https://github.com/akrylysov/abrvalg) with code improvement and with more strict parsing, with addition of new features,
+Abbey is based on complete rewrite of [Abrvalg](https://github.com/akrylysov/abrvalg) with code improvement and with more strict parsing and addition of new features,
 
 Features in abbey different from [Abrvalg](https://github.com/akrylysov/abrvalg)
 
@@ -18,9 +18,10 @@ Features in abbey different from [Abrvalg](https://github.com/akrylysov/abrvalg)
 * conditional assignment
 * multiple assignment
 * importing python modules
+* importing module
 * .foreach iteration
-* break statement expression
-* continue statement expression
+* break condition
+* continue condition
 
 ### Function keywords
 ```py
@@ -45,7 +46,7 @@ a  or b
 in
 'h' in 'hello' # True
 
-'pick' in ['pick','pack']
+'pick' in ['pick','pack'] # True
 
 not 
 
@@ -55,7 +56,7 @@ use # for importing module from python
 use os
 use os as __os
 use re as regex
-
+include function in "file.ab" # import abbey function
 ```
 ### Exception
 ```js
@@ -87,7 +88,7 @@ name, email, password = 'myname','myemail','mypassword'
 write(name)
 write(email)
 write(password)
-f,g = 1,2,3  # raise error, left items(2) not equals right(3)
+f,g,k = 1,2,3,8  # raise error, left items(3) not equals right(4)
 a = 1,2,3,4,5,6,6,7 # will be converted to list  
 write(a)  #[1,2,3,4,5,6,6,7]
 write(a[2]) # 3
@@ -98,7 +99,7 @@ write(a[2]) # 3
 name = 'helloword'
 out = name.upper.lower.isalpha
 write(out)  # True
-name = 'hello'
+
 # parsing arguments
 k = '__helloo'
 h = k.lstrip('_').count('l')
@@ -127,18 +128,33 @@ use os  # import os
 write(os.getcwd)
 
 use re as regex
-m = regex.compile('[a-z'])
+m = regex.compile('[a-z]')
 f = m.search('hello')
 write(f)
 ```
+## importing local module
+```py
+# in file.ab
+func add(x,y):
+    return x + y
+func div(x,y,z):
+    h = add(x,y)
+    return h/y
 
-### Break Expression
+# in main.ab
+include div in "file.ab"
+d = div(1,2,3)
+write(d)
+
+
+```
+### Break and Continue condition
 ```py
 # prints out 4,5,6,7
 p = [1,2,3,4,5,9,4,3,7,8,9,10]
 p.foreach => num:
-    break num == 8 # break if num == 8
-    continue num in [1,2,3] # continue if num in [1,2,3]
+    break ? num == 8 # break if num == 8
+    continue ? num in [1,2,3] # continue if num in [1,2,3]
     write(num)
 ```
 ## Setup

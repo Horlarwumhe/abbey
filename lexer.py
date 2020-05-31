@@ -54,7 +54,9 @@ class LineLexer:
         'as':"AS",
         'and':"AND",
         'or':"OR",
-        'not':'NOT'
+        'not':'NOT',
+        'include':"INCLUDE",
+        # "FROM" :'from'
         }
 		self.operators = {
 	    '-':"-",

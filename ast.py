@@ -170,6 +170,10 @@ class Use(Node):
     _name = 'use'
     fields = ('module','alias','line')
 
+class Include(Node):
+    _name = 'include'
+    fields = ('function','file','line')
+
 class LogicalOperator(Node):
     # in , and ,or 
     _name = 'logical'
