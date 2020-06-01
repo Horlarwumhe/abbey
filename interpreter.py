@@ -4,7 +4,7 @@ import os
 
 from abbey import ast
 from abbey._types import List, Dict,String
-from abbey.utils import Environment
+from abbey.utils import Environment,assert_expression
 from abbey._builtins import Builtins, Str, load_builtins
 from abbey.errors import * # import all exceptions
 from abbey import operators
@@ -34,7 +34,8 @@ nodes = {
     ast.Break : "visit_break",
     ast.Continue :'visit_continue',
     ast.LogicalOperator:'visit_logical',
-    ast.Include:'visit_include'
+    ast.Include:'visit_include',
+    ast.Class_:'visit_class'
 }
 BuiltinFunction = namedtuple('BuiltinFunction', ['params', 'body'])
 
@@ -91,7 +92,10 @@ class Interpreter:
             env = default_env
         self.env =env
         load_builtins(env)
-        
+    
+    def visit_class(self,node,env):
+        env.set(node.name,node)
+
     def get_node_function(self,node):
         func_str = nodes.get(type(node))
         assert func_str is not None , "unknow node type {}".format(type(node))
@@ -116,13 +120,13 @@ class Interpreter:
             func = self.get_node_function(node)
             ret = func(node,env)
         return ret
-    def visit_expression(self,node,env):
+    def    visit_expression(self,node,env):
         func = self.get_node_function(node)
         return func(node,env)
 
     def multi_assignment(self,node,env,side=None):
         for item,value in zip(node.left,node.right):
-            if isinstance(item,ast.SubscriptOperator):
+            if isinstance(item,(ast.SubscriptOperator,ast.Objcall)):
                 raise TypeError_('assignment type not supported',node.line)
 
         if side == 'right':
@@ -133,6 +137,20 @@ class Interpreter:
             for item,value in zip(node.left,node.right2):
                 assign = env.set(item.value, self.visit_expression(value, env))
             return assign
+
+    def obj_assignment(self,node,env,right=True):
+        # node, assignment node
+        # obj.attr = new
+        obj = self.visit_expression(node.left.obj,env)
+        assert_expression(isinstance(obj,ast.Class_), 'cant set attribute of %s'%obj,node.line)
+        attr = obj.env.get(node.left.attr)
+        if isinstance(attr,ast.Function):
+            raise TypeError_('cant assign to function call',obj.line)
+        if right:
+            value = node.right
+        else:
+            value = node.right2
+        return obj.env.set(node.left.attr,self.visit_expression(value,env))
 
 
     def visit_assignment(self,node,env):
@@ -151,6 +169,8 @@ class Interpreter:
                 # item1,item2 = val1,val2 ? cond : val3,val4
                 side = {True:'right',False:'right2'}
                 return self.multi_assignment(node,env,side=side[bool(test)])
+            elif isinstance(node.left,ast.Objcall):
+                return self.obj_assignment(node,env,right=bool(test))
             else:
                 # value = name ? cond : name 2
                 if test:
@@ -160,12 +180,14 @@ class Interpreter:
         elif isinstance(node.left,list):
             #item1,item2 = val1, val2
             for item,value in zip(node.left,node.right):
-                if isinstance(item,ast.SubscriptOperator):
+                if isinstance(item,(ast.SubscriptOperator,ast.Objcall)):
                     raise TypeError_('assignment type not supported',node.line)
                 assign = env.set(item.value, self.visit_expression(value, env))
             return assign
+        elif isinstance(node.left,ast.Objcall):
+            return self.obj_assignment(node,env,right=True)
+            
         else:
-            #name = value
             return env.set(node.left.value,self.visit_expression(node.right, env))
 
     def visit_getitem(self,node,env):
@@ -188,14 +210,11 @@ class Interpreter:
         subscript = node.left
         data = self.visit_expression(subscript.left,env)
         key = self.visit_expression(subscript.key,env)
+        value  = self.visit_expression(node.right,env)
         if node.test:
             test_pass = self.visit_expression(node.test,env)
-            if test_pass:
-                value = self.visit_expression(node.right,env)
-            else:
+            if not test_pass:
                 value = self.visit_expression(node.right2,env)
-        else:
-            value  = self.visit_expression(node.right,env)
         try:
             data[key] = value
         except IndexError:
@@ -204,11 +223,19 @@ class Interpreter:
             raise TypeError_(e,node.line)
 
     def visit_objcall (self,node,env):
-        # name.attr()
+        # name.attr(arg1,arg2)
         # obj.attr
+
         obj = self.visit_expression(node.obj,env)
         attr = node.attr
-        args = [self.visit_expression(n,env) for n in node.args]
+        args = [self.visit_expression(n,env) for n in node.arguements]
+        if isinstance(obj,ast.Class_):
+            cls_attr = obj.env.get(attr)
+            if cls_attr is None:
+                raise AttributeError_('class %s object has no attribute "%s" '%(obj.name,attr),node.line)
+            new_env = Environment(env)
+            new_env.set('this',obj)
+            return self.visit_class_obj(cls_attr,new_env,args,kls=obj)
         func = getattr(obj,attr,None)
         if not func:
             raise AttributeError_(f'{obj.__class__.__name__} object has no atrribute "{attr}',node.line)
@@ -230,11 +257,14 @@ class Interpreter:
                     env.set(var,e)
                 body = self.visit_statements(node.catch_body,env)
             except Exception as x:
-                # raise exception that occurs in try block and catch block
+                # raise exceptions that occur in try block and catch block
                 errors.append(str(x))
                 f = '\n\n'+errors[0] +'\n'*2
+                line = node.line
                 s = 'during handling above exception another exception occurs'+'\n'*2+ errors[1]
-                raise AbrvalgError(f+s,node.line)
+                if hasattr(e,'line'):
+                    line = e.line
+                raise AbbeyError(f+s,line)
         return body
 
     def visit_identifier(self,node, env):
@@ -292,8 +322,35 @@ class Interpreter:
         return env.set(node.name, node)
 
 
+    def visit_class_obj(self,func,func_env,args,kls=None):
+        if not isinstance(func,ast.Function):
+            return func
+        if len(args) != len(func.params):
+            raise TypeError_ ('method "%s" of  class "%s" takes %s arguments %s were given'%(
+                            func.name,func_env.get('this').name,len(func.params),len(args)),func.line)
+        args = dict(zip(func.params, args))
+        func_env.from_dict(args)
+        try:
+            return self.visit_statements(func.body,func_env)
+        except Return as ret:
+            return ret.value
+        except Exception as e:
+            if hasattr(kls,'import_'):
+                    #imported kls,indicate the module name and line
+                    raise TypeError_(" %s , in file '%s' line %s "%(e.message,kls.file,e.line),func.line)
+            raise TypeError_(e,e.line)
+
+
+        else:
+            return 'None'
     def visit_call(self,node, env):
         function = env.get(node.name)
+        if isinstance(function,ast.Class_):
+            klass = function
+            env = Environment(env)
+            self.visit_statements(klass.body,env)
+            klass.env = env
+            return klass
         if function is None:
             raise NameError_('NameError: Name "{}" is not defined'.format(node.name),node.line) 
         if isinstance(function,ast.Function):

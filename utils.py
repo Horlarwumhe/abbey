@@ -5,13 +5,12 @@ def assert_expression(exp,msg,line=None):
     try:
         assert exp,msg
     except AssertionError:
-        raise AbbeySyntaxError(msg,line,5)
+        raise AbbeySyntaxError(msg,line,line)
 
 
 def report_syntax_error(lexer, error):
     line = error.line
     column = error.column
-    print(line,column,'======')
     source_line = lexer.source_lines[line - 1]
     print('Syntax error: {} at line {}'.format(error.message, line, column))
     print(' '*3,'{}\n{}^'.format(source_line, ' ' * (column - 1)))

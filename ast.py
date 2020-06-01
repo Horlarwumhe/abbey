@@ -151,7 +151,7 @@ class Program(Node) :
         
 class Objcall(Node):
     _name = 'objcall'
-    fields = ('obj','attr','args','line')
+    fields = ('obj','attr','arguements','line')
 
         
 class Try (Node):
@@ -178,3 +178,16 @@ class LogicalOperator(Node):
     # in , and ,or 
     _name = 'logical'
     fields  = ('left','right','operator','line')
+
+class Class_(Node):
+
+    _name = 'class'
+    fields = ('name',"body",'line','env')
+
+    def load_env(self):
+        for node in self.body:
+            if isinstance(node,Assignment):
+                self.env[node.left] = node
+            elif isinstance(node,Function):
+                self.env[node.name] = node
+

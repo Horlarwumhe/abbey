@@ -32,7 +32,10 @@ class BoolOperatorTest(Test,unittest.TestCase):
 
 		code = """6 == 6 and 7 <> 7"""
 		ret = self.parse(code)
+		code = """not 'j' in {j:'play',p:'ghsd'}"""
+		r = self.parse(code)
 		self.assertEqual(ret,False)
+		self.assertEqual(r,False)
 
 
 class Testassign(Test,unittest.TestCase):
@@ -56,3 +59,6 @@ calc(67,33)"""
 		ret = self.parse(c)
 		self.assertEqual(ret,12.5)
 
+
+if __name__ == '__main__':
+	unittest.main()

@@ -20,7 +20,8 @@ statements = {
             'IN':'in',
              'OR':'or',
              'AND':'and',
-             'INCLUDE':'include'
+             'INCLUDE':'include',
+             'CLASS':'class',
             }
 expression =  {'NUMBER':"num" ,
               'STRING': "str",
@@ -30,7 +31,8 @@ expression =  {'NUMBER':"num" ,
               'LCBRACK': "dict",
               #'OPERATOR': "unary",
               'COMMA':'err',
-              'NOT':'not'
+              'NOT':'not',
+              'OPERATOR':'math'
               }
 infix = {
     'OPERATOR': "compare",
@@ -177,11 +179,13 @@ class Expression(BaseParser):
 
         token = self.eat(tokens,"NUMBER")
         return ast.Number(token.value,token.line)
-        
+    def math_expression(self,tokens):
+        print(tokens.current)
+        pass
 
     def assignment_expression(self,tokens, left):
         multiple = False
-        if not isinstance(left,(ast.Identifier,ast.SubscriptOperator,list)):
+        if not isinstance(left,(ast.Identifier,ast.SubscriptOperator,ast.Objcall,list)):
             raise ParserError("SyntaxError: cant assign to literal",tokens.current)
         self.eat(tokens,'ASSIGN')
         line_num = left[0].line if isinstance(left,list) else left.line
@@ -629,7 +633,7 @@ class Statement(BaseParser):
         self.eat(tokens,'COLON')
         with self as parser:
             parser.scope.append('loop')
-            body = self.block_parser(tokens,True)
+            body = self.block_parser(tokens)
         return ast.ForEach(obj,name,body,line_num)
 
     def parse_use_statement(self,tokens):
@@ -649,6 +653,16 @@ class Statement(BaseParser):
         file =  self.eat(tokens,'STRING').value
         self.eat(tokens,"NEWLINE")
         return ast.Include(func,file,line_num)
+
+    def parse_class_statement(self,tokens):
+        self.eat(tokens,'CLASS')
+        cls_name =self.eat(tokens,"NAME")
+        self.eat(tokens,"COLON")
+        body = self.block_parser(tokens)
+        # self.eat(tokens,"DEDENT")
+        return ast.Class_(cls_name.value,body,cls_name.line,{})
+
+
 
 
 

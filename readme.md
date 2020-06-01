@@ -11,6 +11,7 @@ Abbey is based on complete rewrite of [Abrvalg](https://github.com/akrylysov/abr
 
 Features in abbey different from [Abrvalg](https://github.com/akrylysov/abrvalg)
 
+* class
 * keywords to function declaration and function call
 * new keywords
 * Exception handling
@@ -23,6 +24,47 @@ Features in abbey different from [Abrvalg](https://github.com/akrylysov/abrvalg)
 * break condition
 * continue condition
 
+
+### Class
+```py
+
+class BankAccount:
+    name = 'bank user'
+    balance = 100
+
+    func deposit(amount):
+        this.balance = this.balance + amount
+
+    func withdraw(amount):
+        if amount > this.balance:
+            return  'insufficient balance'
+        this.balance = this.balance - amount
+        return this.balance
+    func changename(name):
+        this.name = name
+        return name
+    func tranfer(amount,account):
+        s = this.withdraw(amount)
+        m = 'tranfer '+ amount + ' to '+ account +' new balance ' + this.balance
+        return m
+
+
+bank = BankAccount()
+write(bank.balance) #100
+bank.withdraw(45)
+write(bank.balance) # 55
+bank.deposit(123)
+write(bank.balance) # 178
+response = bank.tranfer(40,123634367)
+write(response) # tranfer 40 to 123634367 new balance 138
+resp = bank.withdraw(56343)
+write(resp) # 'insufficient balance'
+new_name = bank.changename('new username')
+write(new_name == bank.name) # True
+bank.name = 'changed name'
+write(bank.name) # changed name
+```
+
 ### Function keywords
 ```py
 func greet(name,times=10):
@@ -30,6 +72,7 @@ func greet(name,times=10):
         write(name)
 func add(num,num):# raise error, multiple args 'num'
     return num + num
+func add(num,other=3,other=8) # raise error, multiple kwargs for 'other'
 greet('abbey') #print 10 times
 greet('abbey',times=3) #print 3 times
 greet('abbey',t=5) # raise error, unknown keyword 't'
@@ -56,7 +99,7 @@ use # for importing module from python
 use os
 use os as __os
 use re as regex
-include function in "file.ab" # import abbey function
+include function in "file.ab" # importing abbey function
 ```
 ### Exception
 ```js
@@ -134,17 +177,46 @@ write(f)
 ```
 ## importing local module
 ```py
-# in file.ab
-func add(x,y):
-    return x + y
-func div(x,y,z):
-    h = add(x,y)
-    return h/y
+# in bank.ab
+
+class BankAccount:
+    name = 'bank user'
+    balance = 100
+
+    func deposit(amount):
+        this.balance = this.balance + amount
+
+    func withdraw(amount):
+        if amount > this.balance:
+            return  'insufficient balance'
+        this.balance = this.balance - amount
+        return this.balance
+    func changename(name):
+        this.name = name
+        return name
+    func tranfer(amount,account):
+        s = this.withdraw(amount)
+        m = 'tranfer '+ amount + ' to '+ account +' new balance ' + this.balance
+        return m
+
 
 # in main.ab
-include div in "file.ab"
-d = div(1,2,3)
-write(d)
+include BankAccount in "imp.ab"
+
+bank = BankAccount()
+write(bank.balance) #100
+bank.withdraw(45)
+write(bank.balance) # 55
+bank.deposit(123)
+write(bank.balance) # 178
+response = bank.tranfer(40,123634367)
+write(response) # tranfer 40 to 123634367 new balance 138
+resp = bank.withdraw(56343)
+write(resp) # 'insufficient balance'
+new_name = bank.changename('new username')
+write(new_name == bank.name) # True
+
+
 
 
 ```

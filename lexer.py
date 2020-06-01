@@ -56,13 +56,15 @@ class LineLexer:
         'or':"OR",
         'not':'NOT',
         'include':"INCLUDE",
+        'class':"CLASS"
         # "FROM" :'from'
         }
 		self.operators = {
 	    '-':"-",
 	    '+':'+',
 	    '*':'*',
-	    '/':'/'
+	    '/':'/',
+	    "%":'%'
 	    }
 
 
@@ -276,6 +278,8 @@ class Lexer:
 		    	token = [Tokentype("DEDENT",None,line_num+1,0)] *level
 		    	tokens.extend(token)
 		    last_indent = space
+		    if space == 0:
+		    	indent_rule = 0
 		    tokens.extend(line_tokens)
 		    tokens.append(Tokentype("NEWLINE",None,line_num+1,0))
 		    c = ' '*space

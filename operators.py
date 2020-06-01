@@ -26,7 +26,10 @@ def mul(x,y):
 	try:
 		return int(x) * int(y)
 	except (ValueError,TypeError):
-		return 0
+		try:
+			return x * y
+		except:
+			return 0
 
 def lt(x,y):
 	try:

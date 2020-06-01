@@ -43,6 +43,7 @@ def main():
 	token_stream = Tokens(tokens)
 	try:
 		program = Parser().parse_all(token_stream)
+		# print(program)
 	except AbbeySyntaxError as err:
 		if args.debug:
 			traceback.print_exc(file=sys.stdout)
