@@ -50,6 +50,7 @@ class BankAccount(name,balance):
 
 
 bank = BankAccount('bank user',100)
+write(bank.name) # bank user
 write(bank.balance) #100
 bank.withdraw(45)
 write(bank.balance) # 55
@@ -64,7 +65,8 @@ write(new_name == bank.name) # True
 bank.name = 'changed name'
 write(bank.name) # changed name
 
-class Calc: # no parameters
+class Calc: # class with  no parameters
+    this.name = 'calc'
 ```
 
 ### Function keywords
@@ -179,7 +181,7 @@ write(f)
 ```
 7. hhjh
 
-## [importing local module](https:/horw.com/jas)
+## importing local module
 ```py
 # in bank.ab
 
@@ -206,6 +208,7 @@ class BankAccount(name,balance):
 
 # in main.ab
 include BankAccount in "bank.ab"
+
 
 bank = BankAccount()
 write(bank.balance) #100
