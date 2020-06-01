@@ -1,20 +1,36 @@
-f = name
-f.foreach =>item:
-   print(item)
+try:
+	write(none)
+catch err:
+	write(err.message)
+	write('hooops  error occurs')
 
-class User:
-    name = 'old name'
-    klass = 'userclas'
-    langs = ['html','css','js','python']
-    func set_name(new_name):
-        this.name = new_name
-    func get_name():
-        return this.name
-    func get(index):
-        return this.langs[index]
-u = User()
-write(u.name) # old name
-write(u.get_name() == u.name) # True
-write(u.set_name('change name'))
-write(u.name)  # change name
-write(u.get(3)) # python
+func alert(name,times=8):
+	times = '-' * times
+	times.foreach => n:
+		write(name)
+
+alert('abbey',times=8)
+alert('abbey')
+try:
+	alert('namme',k=5)
+catch err:
+	write(err.message)
+n = ''
+for i in ['h','e','l','l','o']:
+	n = n + i
+m,k = 'yes','true' ? 9==9 and 'p'  in n : 'no','false'
+write(m+k)
+write(n)
+
+items = ['bag','pen','pecil']
+write(items[0],items[1])
+items[0] = 'bagss'
+items.append('ruler')
+items.append('passed')
+write(items)
+
+detail = {name:'username',password:'xxxxxx',mail:'mail@mail.co'}
+write(detail.name == detail['name'])
+write('name' in detail)
+write('alll test passed')
+
