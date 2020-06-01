@@ -7,11 +7,11 @@ it is developed as hobby interpreter and for learning purpose
 
 
 
-Abbey is based on complete rewrite of [Abrvalg](https://github.com/akrylysov/abrvalg) with code improvement and with more strict parsing and addition of new features,
+Abbey is based on complete rewrite of [Abrvalg](https://github.com/akrylysov/abrvalg) with code improvement and  more strict parsing and addition of new features,
 
 Features in abbey different from [Abrvalg](https://github.com/akrylysov/abrvalg)
 
-* class
+* Class
 * keywords to function declaration and function call
 * new keywords
 * Exception handling
@@ -19,7 +19,7 @@ Features in abbey different from [Abrvalg](https://github.com/akrylysov/abrvalg)
 * conditional assignment
 * multiple assignment
 * importing python modules
-* importing module
+* importing  module
 * .foreach iteration
 * break condition
 * continue condition
@@ -28,9 +28,9 @@ Features in abbey different from [Abrvalg](https://github.com/akrylysov/abrvalg)
 ### Class
 ```py
 
-class BankAccount:
-    name = 'bank user'
-    balance = 100
+class BankAccount(name,balance):
+    this.name = name
+    this.balance = balance
 
     func deposit(amount):
         this.balance = this.balance + amount
@@ -49,7 +49,7 @@ class BankAccount:
         return m
 
 
-bank = BankAccount()
+bank = BankAccount('bank user',100)
 write(bank.balance) #100
 bank.withdraw(45)
 write(bank.balance) # 55
@@ -63,6 +63,8 @@ new_name = bank.changename('new username')
 write(new_name == bank.name) # True
 bank.name = 'changed name'
 write(bank.name) # changed name
+
+class Calc: # no parameters
 ```
 
 ### Function keywords
@@ -175,13 +177,15 @@ m = regex.compile('[a-z]')
 f = m.search('hello')
 write(f)
 ```
-## importing local module
+7. hhjh
+
+## [importing local module](https:/horw.com/jas)
 ```py
 # in bank.ab
 
-class BankAccount:
-    name = 'bank user'
-    balance = 100
+class BankAccount(name,balance):
+    this.name = name
+    this.balance = balance
 
     func deposit(amount):
         this.balance = this.balance + amount
@@ -196,12 +200,12 @@ class BankAccount:
         return name
     func tranfer(amount,account):
         s = this.withdraw(amount)
-        m = 'tranfer '+ amount + ' to '+ account +' new balance ' + this.balance
-        return m
+        response = 'tranfer '+ amount + ' to '+ account +' new balance ' + this.balance
+        return response
 
 
 # in main.ab
-include BankAccount in "imp.ab"
+include BankAccount in "bank.ab"
 
 bank = BankAccount()
 write(bank.balance) #100
@@ -244,14 +248,14 @@ run `python -m unittest`
 ### Running interpreter
 To execute  program, run 
 inside main folder `python main.py <file>`.
-there are files in [examples](examples) folder
+there are files in [examples](/examples) folder
 run `python main.py examples/<filename>`
 
 
 
 ### Issuses
 
- Abbey use indentation(whitespace) to indicate block of code like python ,so there may be exception raising if there is inconsistency in use of tab and spaces
+ Abbey use indentation(whitespace) to indicate block of code like python ,so there may be exception raising or source not being parse properly if there is inconsistency in use of tab and spaces. 
 
  ### credits
    * [Abrvalg](https://github.com/akrylysov/abrvalg)
