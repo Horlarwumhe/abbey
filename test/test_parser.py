@@ -56,7 +56,7 @@ func add(k,u):
 		self.assertEqual(func2.name,'add')
 
 		#parameters 
-		self.assertEqual(['name','user'],func1.params)
+		self.assertEqual(['name','user'],func1.arguements)
 
 		#keywords
 		keywords = {k:v.value for k,v in func1.keywords.items()}

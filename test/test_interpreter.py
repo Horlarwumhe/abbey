@@ -59,6 +59,36 @@ calc(67,33)"""
 		ret = self.parse(c)
 		self.assertEqual(ret,12.5)
 
+class ClassTest(Test,unittest.TestCase):
+	def test_class(self):
+
+		code ="""
+class Calc(num1,num2):
+	this.num1 = num1
+	this.num2 = num2
+	this.result = []
+
+	func add():
+		this.result.append(this.num1 + this.num2)
+		return this.num1 + this.num2
+	func sub():
+		this.result.append(this.num1 - this.num2)
+		return this.num1 - this.num2
+	func div(by):
+		d = this.add()
+		this.result.append(d/by)
+		return d/by
+	func all():
+		return this.result
+c = Calc(56,34)
+c.add()
+c.sub()
+7 - 78
+c.div(6)
+c.all()
+	"""
+		ret = self.parse(code)
+		self.assertEqual(ret,[90,22,90,15.0])
 
 if __name__ == '__main__':
 	unittest.main()

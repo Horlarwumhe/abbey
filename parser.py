@@ -180,7 +180,7 @@ class Expression(BaseParser):
         token = self.eat(tokens,"NUMBER")
         return ast.Number(token.value,token.line)
     def math_expression(self,tokens):
-        print(tokens.current)
+        raise ParserError('this is not supported yet "-x or + x", use x - y instead',tokens.current)
         pass
 
     def assignment_expression(self,tokens, left):

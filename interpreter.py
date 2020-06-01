@@ -37,7 +37,6 @@ nodes = {
     ast.Include:'visit_include',
     ast.Class_:'visit_class'
 }
-BuiltinFunction = namedtuple('BuiltinFunction', ['params', 'body'])
 
 class Operators:
 
@@ -100,7 +99,7 @@ class Interpreter:
         func_str = nodes.get(type(node))
         assert func_str is not None , "unknow node type {}".format(type(node))
         func = getattr(self,func_str,None)
-        assert func is not None , f"{self} has no function for {type(node)}"
+        assert func is not None , f"{self.__class__.__name__} has no function for {type(node)}"
         return func
     def interpret(self):
         ret = None
@@ -120,7 +119,7 @@ class Interpreter:
             func = self.get_node_function(node)
             ret = func(node,env)
         return ret
-    def    visit_expression(self,node,env):
+    def visit_expression(self,node,env):
         func = self.get_node_function(node)
         return func(node,env)
 
@@ -154,10 +153,6 @@ class Interpreter:
 
 
     def visit_assignment(self,node,env):
-        # value = name
-        # value[key] = name
-        # value = name ? cond : name 2
-        # value[key] = new ? cond : other
         left = node.left
         if isinstance(left,ast.SubscriptOperator):
             # c[key] =value
@@ -170,6 +165,7 @@ class Interpreter:
                 side = {True:'right',False:'right2'}
                 return self.multi_assignment(node,env,side=side[bool(test)])
             elif isinstance(node.left,ast.Objcall):
+                #class.method = val ? cond : val2 
                 return self.obj_assignment(node,env,right=bool(test))
             else:
                 # value = name ? cond : name 2
@@ -181,6 +177,8 @@ class Interpreter:
             #item1,item2 = val1, val2
             for item,value in zip(node.left,node.right):
                 if isinstance(item,(ast.SubscriptOperator,ast.Objcall)):
+                    # b,dict[key] = val1, val2 
+                    # not supported yet
                     raise TypeError_('assignment type not supported',node.line)
                 assign = env.set(item.value, self.visit_expression(value, env))
             return assign
@@ -323,11 +321,14 @@ class Interpreter:
 
 
     def visit_class_obj(self,func,func_env,args,kls=None):
+        # visit function call of a class
         if not isinstance(func,ast.Function):
             return func
         if len(args) != len(func.arguements):
             raise TypeError_ ('method "%s" of  class "%s" takes %s arguments %s were given'%(
-                            func.name,func_env.get('this').name,len(func.arguements),len(args)),func.line)
+                                func.name,func_env.get('this').name,len(func.arguements),len(args)),
+                                func.line
+                            )
         args = dict(zip(func.arguements, args))
         func_env.from_dict(args)
         try:
@@ -338,7 +339,10 @@ class Interpreter:
             if hasattr(kls,'import_'):
                     #imported kls,indicate the module name and line
                     raise TypeError_(" %s , in file '%s' line %s "%(e.message,kls.file,e.line),func.line)
-            raise TypeError_(e,e.line)
+            line = func.line
+            if hasattr(e,'line'):
+                line = e.line
+            raise TypeError(e,line)
 
 
         else:
@@ -371,9 +375,7 @@ class Interpreter:
         if isinstance(function,ast.Class_):
             klass = function
             newenv = Environment(env,{'this':klass})
-            newenv.from_dict(fun_kwargs)
-            newenv.from_dict(call_kwargs)
-            newenv.from_dict(args)
+            newenv.from_dict(fun_kwargs,call_kwargs,args)
             klass.env = newenv
             self.visit_statements(klass.body,newenv)
             klass.env = newenv
@@ -383,9 +385,8 @@ class Interpreter:
             function.check_args(node)
             call_env = Environment(env, args)
             # set kwargs in function to env
-            call_env.from_dict(fun_kwargs)
+            call_env.from_dict(fun_kwargs,call_kwargs)
             #set kwargs in function call to env to overide kwargs in function def.
-            call_env.from_dict(call_kwargs)
             try:
                 self.visit_statements(function.body, call_env)
             except Return as ret:
@@ -489,7 +490,7 @@ class Interpreter:
                 buff = open(path)
                 content = buff.read()
                 buff.close()
-            except:
+            except FileNotFoundError:
                 raise TypeError_("module not found %s"%path,node.line)
             try:
                 import_env= load_module(content,self)

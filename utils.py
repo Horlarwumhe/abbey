@@ -46,9 +46,10 @@ class Environment(object):
         for key, value in args.items():
             self.set(key, value)
 
-    def from_dict(self,_dict):
-        for key, val in _dict.items():
-            self.set(key,val)
+    def from_dict(self,*_dict):
+        for dic in _dict:
+            for key, val in dic.items():
+                self.set(key,val)
 
     def set(self, key, val):
         self._values[key] = val
