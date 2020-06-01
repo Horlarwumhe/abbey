@@ -4,7 +4,7 @@ from abbey.errors import TypeError_
 
 class Node:
     fields = ()
-    exclude = () # exclude fields in str representation
+    exclude = () # excluded fields in str representation
 
     def __init__(self,*fields_):
         if len(self.fields) != len(fields_):
@@ -50,7 +50,7 @@ class Identifier(Node) :
 
 class Function(Node):
     _name = 'function'
-    fields = ("name","params","keywords","body","line")
+    fields = ("name","arguements","keywords","body","line")
     exclude = ('body',)
 
     def check_args(self,call):
@@ -182,7 +182,7 @@ class LogicalOperator(Node):
 class Class_(Node):
 
     _name = 'class'
-    fields = ('name',"body",'line','env')
+    fields = ('name','arguements','keywords',"body",'line','env')
 
     def load_env(self):
         for node in self.body:

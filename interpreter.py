@@ -325,10 +325,10 @@ class Interpreter:
     def visit_class_obj(self,func,func_env,args,kls=None):
         if not isinstance(func,ast.Function):
             return func
-        if len(args) != len(func.params):
+        if len(args) != len(func.arguements):
             raise TypeError_ ('method "%s" of  class "%s" takes %s arguments %s were given'%(
-                            func.name,func_env.get('this').name,len(func.params),len(args)),func.line)
-        args = dict(zip(func.params, args))
+                            func.name,func_env.get('this').name,len(func.arguements),len(args)),func.line)
+        args = dict(zip(func.arguements, args))
         func_env.from_dict(args)
         try:
             return self.visit_statements(func.body,func_env)
@@ -345,18 +345,10 @@ class Interpreter:
             return 'None'
     def visit_call(self,node, env):
         function = env.get(node.name)
-        if isinstance(function,ast.Class_):
-            klass = function
-            env = Environment(env)
-            self.visit_statements(klass.body,env)
-            klass.env = env
-            return klass
         if function is None:
-            raise NameError_('NameError: Name "{}" is not defined'.format(node.name),node.line) 
-        if isinstance(function,ast.Function):
-            function.check_args(node)
-            builtin = False
-        elif isinstance (function,Builtins):
+            raise NameError_('NameError: Name "{}" is not defined'.format(node.name),node.line)
+
+        if isinstance (function,Builtins):
             args = [self.visit_expression(arg, env) for arg in node.arguements]
             kwargs = {k:self.visit_expression(v, env) for k, v in node.keywords.items()}
             function.check_args(node)
@@ -364,19 +356,32 @@ class Interpreter:
                 return function.callback(*args,**kwargs)
             except Exception as e:
                 raise TypeError_(e,node.line)
-        expect = len(function.params)
+
+        if not isinstance(function,(ast.Class_,ast.Function)):
+            raise TypeError_("%s is not callbale"%function,node.line)
+
+        fun_kwargs = dict(zip(function.keywords.keys(), [self.visit_expression(value,env) for value in function.keywords.values()]))
+        call_kwargs = dict(zip(node.keywords.keys(), [self.visit_expression(value,env) for value in node.keywords.values()]))
+        expect = len(function.arguements)
         given = len(node.arguements)
+        m = [*node.arguements]
         if expect != given:
             raise TypeError_('TypeError: {}() takes {} positional argument but {} were given '.format(function.name,expect, given),node.line)
-        m = [*node.arguements]
-        args = dict(zip(function.params, [self.visit_expression(node, env) for node in m]))
+        args = dict(zip(function.arguements, [self.visit_expression(value, env) for value in m]))
+        if isinstance(function,ast.Class_):
+            klass = function
+            newenv = Environment(env,{'this':klass})
+            newenv.from_dict(fun_kwargs)
+            newenv.from_dict(call_kwargs)
+            newenv.from_dict(args)
+            klass.env = newenv
+            self.visit_statements(klass.body,newenv)
+            klass.env = newenv
+            return klass 
 
-        if isinstance(function,ast.Function):
+        elif isinstance(function,ast.Function):
+            function.check_args(node)
             call_env = Environment(env, args)
-            # function kwargs " func name(h=90)"
-            fun_kwargs = dict(zip(function.keywords.keys(), [self.visit_expression(value,env) for value in function.keywords.values()]))
-            # function call kwargs "name(h=87)"
-            call_kwargs = dict(zip(node.keywords.keys(), [self.visit_expression(value,env) for value in node.keywords.values()]))
             # set kwargs in function to env
             call_env.from_dict(fun_kwargs)
             #set kwargs in function call to env to overide kwargs in function def.

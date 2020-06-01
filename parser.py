@@ -412,7 +412,7 @@ class Statement(BaseParser):
 
 
     def parse_function_params(self,tokens,function):
-        # function declarations
+        # function/class declarations args and kwargs
         params = []
         keys = {}
         if tokens.current.name == 'NAME':
@@ -441,7 +441,7 @@ class Statement(BaseParser):
                             raise ParserError("positional argument after keyword argument",tokens.current)
                 if not keyword:
                     if id_token.value in params:
-                       raise ParserError(f'{function.value}() got multiple  arguements for {id_token.value}',tokens.current)
+                       raise ParserError(f'{function}() got multiple  arguements for {id_token.value}',tokens.current)
                     params.append(id_token.value)
                     # params.append(tokens.current.value) if not keyword else None
         else:
@@ -459,7 +459,7 @@ class Statement(BaseParser):
         else:
             fun_name = id_token
             self.eat(tokens,'LPAREN')
-            arguments,kwargs = self.parse_function_params(tokens,fun_name)
+            arguments,kwargs = self.parse_function_params(tokens,fun_name.value)
             self.eat(tokens,'RPAREN', 'COLON')
         with self as parser:
             parser.scope.append('function')
@@ -656,11 +656,22 @@ class Statement(BaseParser):
 
     def parse_class_statement(self,tokens):
         self.eat(tokens,'CLASS')
+        args,kwargs = [], {}
         cls_name =self.eat(tokens,"NAME")
-        self.eat(tokens,"COLON")
+        if tokens.current.name == "COLON":
+            # class nam:
+            self.eat(tokens,"COLON")
+        elif tokens.peek.name == "RPAREN":
+            # current = '(' peek,')'
+            # class n()
+            self.eat(tokens,"LPAREN","RPAREN","COLON")
+        else:
+            self.eat(tokens,'LPAREN')
+            args, kwargs = self.parse_function_params(tokens,cls_name.value)
+            self.eat(tokens,"RPAREN","COLON")
         body = self.block_parser(tokens)
         # self.eat(tokens,"DEDENT")
-        return ast.Class_(cls_name.value,body,cls_name.line,{})
+        return ast.Class_(cls_name.value,args,kwargs,body,cls_name.line,{})
 
 
 
