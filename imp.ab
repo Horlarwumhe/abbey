@@ -7,7 +7,6 @@ class BankAccount:
 		this.balance = this.balance + amount
 
 	func withdraw(amount):
-		j = poi
 		if amount > this.balance:
 			return  'insufficient balance'
 		this.balance = this.balance - amount
@@ -19,7 +18,3 @@ class BankAccount:
 		s = this.withdraw(amount)
 		m = 'tranfer '+ amount + ' to '+ account +' new balance ' + this.balance
 		return m
-
-
-    
-

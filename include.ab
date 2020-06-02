@@ -1,0 +1,9 @@
+include BankAccount in "class.ab"
+
+b = BankAccount('bank user',1000)
+write(b.withdraw(34))
+write(b.balance)
+resp = b.transfer(154,8827632)
+write(b.balance,resp)
+b.changename('username')
+write(b.name)

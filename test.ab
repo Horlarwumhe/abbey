@@ -9,7 +9,7 @@ func alert(name,times=8):
 	times.foreach => n:
 		write(name)
 
-alert('abbey',times=8)
+alert('abbey',times=3)
 alert('abbey')
 try:
 	alert('namme',k=5)

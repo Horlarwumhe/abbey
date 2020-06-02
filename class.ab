@@ -1,13 +1,12 @@
 
-class BankAccount:
-	name = 'bank user'
-	balance = 100
+class BankAccount(name,balance):
+	this.name = name
+	this.balance = balance
 
 	func deposit(amount):
 		this.balance = this.balance + amount
 
 	func withdraw(amount):
-		j = poi
 		if amount > this.balance:
 			return  'insufficient balance'
 		this.balance = this.balance - amount
@@ -15,7 +14,7 @@ class BankAccount:
 	func changename(name):
 		this.name = name ? len(name) == 8  : this.name
 		return name
-	func tranfer(amount,account):
+	func transfer(amount,account):
 		s = this.withdraw(amount)
 		m = 'tranfer '+ amount + ' to '+ account +' new balance ' + this.balance
 		return m

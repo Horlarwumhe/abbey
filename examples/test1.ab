@@ -1,0 +1,20 @@
+f = name
+f.foreach =>item:
+   print(item)
+
+class User:
+    name = 'old name'
+    klass = 'userclas'
+    langs = ['html','css','js','python']
+    func set_name(new_name):
+        this.name = new_name
+    func get_name():
+        return this.name
+    func get(index):
+        return this.langs[index]
+u = User()
+write(u.name) # old name
+write(u.get_name() == u.name) # True
+write(u.set_name('change name'))
+write(u.name)  # change name
+write(u.get(3)) # python
