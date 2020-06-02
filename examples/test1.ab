@@ -1,4 +1,4 @@
-f = name
+f = "abncjrjrjrjjrjekeur"
 f.foreach =>item:
    print(item)
 
