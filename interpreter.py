@@ -336,13 +336,13 @@ class Interpreter:
         except Return as ret:
             return ret.value
         except Exception as e:
+            line = func.line
+            if hasattr(e,"line"):
+                 line = e.line
             if hasattr(kls,'import_'):
                     #imported kls,indicate the module name and line
-                    raise TypeError_(" %s , in file '%s' line %s "%(e.message,kls.file,e.line),func.line)
-            line = func.line
-            if hasattr(e,'line'):
-                line = e.line
-            raise TypeError(e,line)
+                    raise TypeError_(" %s , in file '%s' line %s "%(e.message,kls.file,line),func.line)
+            raise TypeError_(e,line)
 
 
         else:
