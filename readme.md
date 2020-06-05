@@ -14,6 +14,7 @@ Features in abbey different from [Abrvalg](https://github.com/akrylysov/abrvalg)
 * Class
 * keywords to function declaration and function call
 * new keywords
+* string formating
 * Exception handling
 * method call
 * conditional assignment
@@ -45,7 +46,8 @@ class BankAccount(name,balance):
         return name
     func tranfer(amount,account):
         s = this.withdraw(amount)
-        m = 'tranfer '+ amount + ' to '+ account +' new balance ' + this.balance
+        balance = this.balance
+        m = "transfer #{amount} to #{account} new balance is #{balance}"
         return m
 
 
@@ -105,6 +107,15 @@ use os as __os
 use re as regex
 include function in "file.ab" # importing abbey function
 ```
+
+
+### String formatting
+```py
+name = "Abbey"
+version = 1
+repo = 'github'
+write("this is #{name} lang, version #{version} on #{repo}") # this is Abbey lang version 1 on github
+```
 ### Exception
 ```js
 try:
@@ -127,7 +138,7 @@ url = 'https'
 msg = 'secure' ? url == 'https' : 'not secure'
 n = 'yes' ? 'a' in 'abcd' and 1 == 2 : 'no'
 write(n) # no
-write(msg) ## 'not secure'
+write(msg) ## 'secure'
 ```
 ## multiple assignment
 ```py

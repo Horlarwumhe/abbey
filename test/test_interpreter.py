@@ -1,6 +1,6 @@
 import sys ,os
-
-sys.path.append(os.path.dirname(os.getcwd()))
+p = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(p)
 
 from abbey.lexer import Lexer 
 from abbey.tokens import  Tokens
@@ -32,9 +32,9 @@ class BoolOperatorTest(Test,unittest.TestCase):
 
 		code = """6 == 6 and 7 <> 7"""
 		ret = self.parse(code)
+		self.assertEqual(ret,False)
 		code = """not 'j' in {j:'play',p:'ghsd'}"""
 		r = self.parse(code)
-		self.assertEqual(ret,False)
 		self.assertEqual(r,False)
 
 
@@ -89,6 +89,22 @@ c.all()
 	"""
 		ret = self.parse(code)
 		self.assertEqual(ret,[90,22,90,15.0])
+
+class StringFormat(Test,unittest.TestCase):
+	def test_format(self):
+		code = '''
+func test():
+  name = "username"
+  email = "useremail@mail.com"
+  date = "today"
+  msg = "hello #{name} your email #{email} is approved #{date}"
+  return msg
+test()
+'''
+		test = self.parse(code)
+		ret = "hello username your email useremail@mail.com is approved today"
+		self.assertEqual(test,ret)
+
 
 if __name__ == '__main__':
 	unittest.main()
