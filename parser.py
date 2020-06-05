@@ -17,6 +17,7 @@ statements = {
             'CATCH':"catch",
             "TRY":'try',
             "USE":'use',
+            'AS':'as',
             'IN':'in',
              'OR':'or',
              'AND':'and',
@@ -90,9 +91,11 @@ class Expression(BaseParser):
         return statements
 
     def get_statement_paser(self,name,tokens=None):
+        '''get function to parse a token'''
         parser = statements.get(name)
         if parser is None:
             return self.check_expression
+        print(name.lower())
         if name.lower() in self.depend:
             if name.lower() in ['else','elif']:
                 raise ParserError(f'{name} condition outside if condition',tokens.current)
@@ -108,6 +111,7 @@ class Expression(BaseParser):
         raise ParserError("SyntaxError: unexpected tokens",tokens.current)
 
     def get_expression_parser(self,name):
+        '''get function to parse an expression'''
         fun =  expression.get(name)
         if fun is None:
             return
@@ -186,7 +190,7 @@ class Expression(BaseParser):
     def assignment_expression(self,tokens, left):
         multiple = False
         if not isinstance(left,(ast.Identifier,ast.SubscriptOperator,ast.Objcall,list)):
-            raise ParserError("SyntaxError: cant assign to literal",tokens.current)
+            raise ParserError("SyntaxError: cant assign to %s"%left._name,tokens.current)
         self.eat(tokens,'ASSIGN')
         line_num = left[0].line if isinstance(left,list) else left.line
         test, right2 = None, None
@@ -320,6 +324,7 @@ class Expression(BaseParser):
         return ast.NotOperator(exp,not_.line)
 
     def subscript_expression(self,tokens,left):
+        '''p[1] = 98'''
         self.eat(tokens,'LBRACK')
         key = self.parse_expression(tokens)
         if key is None:
@@ -329,7 +334,7 @@ class Expression(BaseParser):
 
 
     def function_keys(self,tokens,fun):
-        # function call keys
+        # function call keyeywords
         key =tokens.prev.value
         kwargs = {}
         tokens.advance()
@@ -376,6 +381,7 @@ class Expression(BaseParser):
         return items
 
     def dict_expression(self,tokens):
+
         line_num = tokens.current.line
         self.eat(tokens,'LCBRACK')
         items = self.parse_dict_items(tokens)
@@ -386,7 +392,14 @@ class Expression(BaseParser):
 
         items = []
         while not tokens.is_end():
-            key = self.eat(tokens,'NAME')
+            # aloows using string or identifier as dict key like javascript
+            # {name:'myname'},{'name':'myname'}
+            if tokens.current.name == "NAME":
+                key = self.eat(tokens,'NAME')
+            elif tokens.current.name == 'STRING':
+                key = self.eat(tokens,'STRING')
+            else:
+                break
             if key is not None:
                 self.eat(tokens,'COLON')
                 value = self.parse_expression(tokens)
