@@ -95,7 +95,6 @@ class Expression(BaseParser):
         parser = statements.get(name)
         if parser is None:
             return self.check_expression
-        print(name.lower())
         if name.lower() in self.depend:
             if name.lower() in ['else','elif']:
                 raise ParserError(f'{name} condition outside if condition',tokens.current)

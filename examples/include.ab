@@ -3,3 +3,8 @@ include BankAccount in "class.ab"
 b = BankAccount()
 write(b.withdraw(34))
 write(b.balance)
+write(b.tranfer(23,98323892))
+h = 'abbey'
+p =7834
+g = [5,3,5,6,7]
+write('helo #{h} this #{p} is #{g}')

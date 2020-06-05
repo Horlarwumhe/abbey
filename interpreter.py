@@ -1,5 +1,6 @@
 import importlib
 import os
+import re
 
 from abbey import ast
 from abbey._types import List, Dict,String
@@ -8,6 +9,8 @@ from abbey._builtins import Builtins, Str, load_builtins
 from abbey.errors import * # import all exceptions
 from abbey import operators
 from abbey.importer import load_module
+
+str_format = re.compile(r'#\{\s*(\w+)\s*\}')
 
 nodes = {
     ast.Number: 'visit_number',
@@ -109,7 +112,11 @@ class Interpreter:
 
     def visit_string(self,node,env):
         """string node"""
-        return String(node.value)
+        def strsub(match):
+            value = match.group(1)
+            return str(env.get(value))
+        value = str_format.sub(strsub,node.value)
+        return String(value)
 
     def visit_number(self,node,env):
         """nuber node"""
@@ -250,7 +257,7 @@ class Interpreter:
                 raise AttributeError_('class %s object has no attribute "%s" '%(obj.name,attr),node.line)
             new_env = Environment(env)
             new_env.set('this',obj)
-            return self.visit_class_obj(cls_attr,new_env,args,kls=obj)
+            return self.visit_class_obj(cls_attr,new_env,args,kls=obj,node=node)
         func = getattr(obj,attr,None)
         if not func:
             raise AttributeError_(f'{obj.__class__.__name__} object has no atrribute "{attr}',node.line)
@@ -346,7 +353,7 @@ class Interpreter:
         return env.set(node.name, node)
 
 
-    def visit_class_obj(self,func,func_env,args,kls=None):
+    def visit_class_obj(self,func,func_env,args,kls=None,node=None):
         ''' visit function call of a class or class attribute
          class ,function()
         '''
@@ -355,7 +362,7 @@ class Interpreter:
         if len(args) != len(func.arguements):
             raise TypeError_ ('method "%s" of  class "%s" takes %s arguments %s were given'%(
                                 func.name,func_env.get('this').name,len(func.arguements),len(args)),
-                                func.line
+                                node.line
                             )
         args = dict(zip(func.arguements, args))
         func_env.from_dict(args)
@@ -363,13 +370,11 @@ class Interpreter:
             return self.visit_statements(func.body,func_env)
         except Return as ret:
             return ret.value
-        except Exception as e:
-            line = func.line
-            if hasattr(e,"line"):
-                 line = e.line
+        except AbbeyBaseError as e:
+            line = e.line
             if hasattr(kls,'import_'):
                     #imported kls,indicate the module name and line
-                    raise TypeError_(" %s , in file '%s' line %s "%(e.message,kls.file,line),func.line)
+                    raise TypeError_(" %s , in file '%s' line %s "%(e.message,kls.file,line),line)
             raise TypeError_(e,line)
 
 
@@ -424,7 +429,7 @@ class Interpreter:
                 self.visit_statements(function.body, call_env)
             except Return as ret:
                 return ret.value
-            except Exception as e:
+            except AbbeyBaseError as e:
                 if hasattr(function,'import_'):
                     #imported function,indicate the module name and line
                     raise TypeError_(" %s , in file '%s' line %s "%(e.message,function.file,e.line),node.line)
