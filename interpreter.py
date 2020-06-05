@@ -355,7 +355,7 @@ class Interpreter:
 
     def visit_class_obj(self,func,func_env,args,kls=None,node=None):
         ''' visit function call of a class or class attribute
-         class ,function()
+         class ,class.method
         '''
         if not isinstance(func,ast.Function):
             return func

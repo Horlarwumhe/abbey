@@ -1,0 +1,12 @@
+array = [2,6,7,9,12,11,23,19,5]
+i = 11 # item looking for
+
+for j in array:
+   if j == i:
+      pos = array.index(j)
+      write("#{i} position #{pos}")
+      break
+array.foreach => i:
+   if i == j:
+      write("#{i} position #{pos}")
+      break

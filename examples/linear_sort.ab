@@ -1,0 +1,11 @@
+array = [2,6,7,9,12,11,23,19,5]
+for i in 0...array.lenght - 1:
+   min = array[i]
+   for j in i+1...array.lenght - 1:
+      if min > array[j] :
+         min = array[j]
+      pos = array.index(min)
+      temp = array[i]
+      array[i] = array[pos]
+      array[pos] = temp
+write(array)

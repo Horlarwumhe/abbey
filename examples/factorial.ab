@@ -1,0 +1,8 @@
+func fact(n):
+    if n <= 0:
+        return
+    if n == 1:
+        return n
+    return n * fact(n -1)
+write(fact(10))
+write(fact(15))

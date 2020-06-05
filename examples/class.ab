@@ -17,7 +17,7 @@ class BankAccount:
 	func tranfer(amount,account):
 		s = this.withdraw(amount)
 		balance = this.balance
-		m = " transfer#{amount} to #{account} new balance is #{balance}"
+		m = "transfer #{amount} to #{account} new balance is #{balance}"
 		return m
 
 
