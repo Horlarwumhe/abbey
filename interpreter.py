@@ -1,5 +1,4 @@
 import importlib
-from collections import namedtuple
 import os
 
 from abbey import ast
@@ -60,11 +59,11 @@ class Operators:
             '<>':lambda x,y: x != y
         }
     logical = {
-    'and': lambda x,y:x and y,
-    'or': lambda x, y: x or y,
-    'in':operators.contains,
+        'and': lambda x,y:x and y,
+        'or': lambda x, y: x or y,
+        'in':operators.contains,
     }
-    # simple_operations.update(comaprism)
+
 class Break(Exception):
     pass
 
@@ -109,12 +108,16 @@ class Interpreter:
         return ret
 
     def visit_string(self,node,env):
+        """string node"""
         return String(node.value)
 
     def visit_number(self,node,env):
+        """nuber node"""
         return node.value
 
     def visit_statements(self,statement,env):
+        ''' for nodes that has body, iterate of the body and visit all nodes
+        eg. if statement, func statement'''
         for node in statement:
             func = self.get_node_function(node)
             ret = func(node,env)
@@ -124,10 +127,17 @@ class Interpreter:
         return func(node,env)
 
     def multi_assignment(self,node,env,side=None):
+        '''item1,item2,item3 = val1,val2,val3 ? condition : val4,val5,val6
+        '''
         for item,value in zip(node.left,node.right):
             if isinstance(item,(ast.SubscriptOperator,ast.Objcall)):
+                # this is not supported yet
+                # item, d[key] = val1,val2
+                # item, class.method = val1,val2
                 raise TypeError_('assignment type not supported',node.line)
 
+        # v = right ? cond : right2
+        # assign to right , if cond return True,else assignt to right2
         if side == 'right':
             for item,value in zip(node.left,node.right):
                 assign = env.set(item.value, self.visit_expression(value, env))
@@ -144,6 +154,9 @@ class Interpreter:
         assert_expression(isinstance(obj,ast.Class_), 'cant set attribute of %s'%obj,node.line)
         attr = obj.env.get(node.left.attr)
         if isinstance(attr,ast.Function):
+            # obj.meth() = 8 or obj.meth = 6
+            # if meth is function
+            # raise an error
             raise TypeError_('cant assign to function call',obj.line)
         if right:
             value = node.right
@@ -183,13 +196,15 @@ class Interpreter:
                 assign = env.set(item.value, self.visit_expression(value, env))
             return assign
         elif isinstance(node.left,ast.Objcall):
+            # class.attr = value
             return self.obj_assignment(node,env,right=True)
             
         else:
+            # item = value
             return env.set(node.left.value,self.visit_expression(node.right, env))
 
     def visit_getitem(self,node,env):
-
+        """list or string or dict getitem method dict[key]"""
         data  = self.visit_expression(node.left,env)
         key = self.visit_expression(node.key,env)
         try:
@@ -203,8 +218,9 @@ class Interpreter:
 
 
     def visit_setitem(self,node,env):
-        # dict[key] = value
-        # list[index] = value
+        """ # dict[key] = value
+            list[index] = value
+        """
         subscript = node.left
         data = self.visit_expression(subscript.left,env)
         key = self.visit_expression(subscript.key,env)
@@ -221,9 +237,10 @@ class Interpreter:
             raise TypeError_(e,node.line)
 
     def visit_objcall (self,node,env):
-        # name.attr(arg1,arg2)
-        # obj.attr
-
+        '''obj.atr
+        obj.attr(arg1,arg2)
+        'hello'.count('h')
+        '''
         obj = self.visit_expression(node.obj,env)
         attr = node.attr
         args = [self.visit_expression(n,env) for n in node.arguements]
@@ -243,6 +260,7 @@ class Interpreter:
             raise TypeError_(e,node.line)
 
     def visit_try(self,node,env):
+        '''try statement'''
 
         errors = []
         try:
@@ -273,6 +291,7 @@ class Interpreter:
         return val
 
     def visit_match(self,node, env):
+        '''match statement'''
         test = self.visit_expression(node.test, env)
         for pattern in node.patterns:
             if self.visit_expression(pattern.pattern, env) == test:
@@ -281,6 +300,7 @@ class Interpreter:
             return self.visit_statements(node.else_body, env)
 
     def visit_while_loop(self,node, env):
+        '''while loop'''
         while self.visit_expression(node.test, env):
             try:
                 self.visit_statements(node.body, env)
@@ -290,6 +310,7 @@ class Interpreter:
                 continue
 
     def visit_for_loop(self,node, env):
+        '''for loop'''
         var_name = node.var_name
         collection = self.visit_expression(node.collection, env)
         for val in collection:
@@ -301,6 +322,9 @@ class Interpreter:
             except Continue:
                 pass
     def visit_break(self,node,env,*args):
+        '''break, 
+           break? 1==1; if 1==1:break
+        '''
         if node.test:
             test = self.visit_expression(node.test,env)
             if test: # test return True
@@ -309,6 +333,7 @@ class Interpreter:
         raise Break()
 
     def visit_continue(self,node,env,*args):
+        '''same as break '''
         if node.test:
             test = self.visit_expression(node.test,env)
             if test:
@@ -317,11 +342,14 @@ class Interpreter:
         raise Continue()
 
     def visit_function_declaration(self,node, env):
+        ''' function declaration'''
         return env.set(node.name, node)
 
 
     def visit_class_obj(self,func,func_env,args,kls=None):
-        # visit function call of a class
+        ''' visit function call of a class or class attribute
+         class ,function()
+        '''
         if not isinstance(func,ast.Function):
             return func
         if len(args) != len(func.arguements):
@@ -348,24 +376,29 @@ class Interpreter:
         else:
             return 'None'
     def visit_call(self,node, env):
+        '''visit call , eg ,factorial(10)'''
         function = env.get(node.name)
         if function is None:
             raise NameError_('NameError: Name "{}" is not defined'.format(node.name),node.line)
 
         if isinstance (function,Builtins):
+            # builtin functions
             args = [self.visit_expression(arg, env) for arg in node.arguements]
             kwargs = {k:self.visit_expression(v, env) for k, v in node.keywords.items()}
-            function.check_args(node)
+            function.check_args(node) # check number of args provide, match required
             try:
                 return function.callback(*args,**kwargs)
             except Exception as e:
                 raise TypeError_(e,node.line)
 
         if not isinstance(function,(ast.Class_,ast.Function)):
+            # 7(), s = 'hello', s()
             raise TypeError_("%s is not callbale"%function,node.line)
 
         fun_kwargs = dict(zip(function.keywords.keys(), [self.visit_expression(value,env) for value in function.keywords.values()]))
+        # function keywords , func name(n,t=4,m=5)
         call_kwargs = dict(zip(node.keywords.keys(), [self.visit_expression(value,env) for value in node.keywords.values()]))
+        # call keywords name('hd',m=98)
         expect = len(function.arguements)
         given = len(node.arguements)
         m = [*node.arguements]
@@ -402,22 +435,26 @@ class Interpreter:
                 return "None"
 
     def visit_array(self,node, env):
+        '''m =[]'''
         l = [self.visit_expression(item, env) for item in node.items]
         return List(l)
 
 
     def visit_dict(self,node, env):
+        '''k ={}'''
         d = {key.value: self.visit_expression(value, env) for key, value in node.items}
         return Dict(d)
 
 
 
     def visit_return(self,node, env):
+        ''' retur from a function'''
         exp = self.visit_expression(node.value, env) if node.value is not None else None
         raise Return(exp)
 
 
     def visit_condition(self,node, env):
+        ''' if condition'''
         if self.visit_expression(node.test, env):
             return self.visit_statements(node.if_body, env)
 
@@ -429,6 +466,10 @@ class Interpreter:
             return self.visit_statements(node.else_body, env)
 
     def visit_binary_operator(self,node, env):
+        ''' operators 
+           1 + 8, 4 * 7
+           7 == 9, 8 <= 9
+        '''
 
         left, right = self.visit_expression(node.left, env), self.visit_expression(node.right, env)
         if node.operator in Operators.simple_operations:
@@ -440,15 +481,18 @@ class Interpreter:
             raise Exception('Invalid operator {}'.format(node.operator))
 
     def visit_logical(self,node,env):
+        '''in , and , or'''
         left = self.visit_expression(node.left,env)
         right = self.visit_expression(node.right,env)
         return Operators.logical[node.operator](left,right)
 
     def visit_not(self,node,env):
+        '''not '''
         right = self.visit_expression(node.right,env)
         return not right
 
     def visit_foreach(self,node,env):
+        '''seq.foreach=>var:'''
         obj = self.visit_expression(node.obj,env)
         if isinstance(obj,int):
             obj = str(obj)
@@ -464,17 +508,21 @@ class Interpreter:
         return 
 
     def visit_use(self,node,env):
+        '''use, for importing module from python'''
         module = node.module
         alias = node.alias
         try:
            mod = importlib.import_module(module)
         except ImportError:
             raise TypeError_('couldn\'t find module, "%s" '%module,node.line)
-        name = alias or module # name to use in d environment if alis is given use it else module name
+        name = alias or module # name to use in the environment if alias is given use it else use module name
         return env.set(name,mod)
 
 
     def visit_include(self,node,env):
+        '''importing local module,
+        not stable yet may be remove later
+        '''
         func_name = node.function
         file = node.file.rstrip('.ab')+'.ab'
         #check if it is already in env before importing it
