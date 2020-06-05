@@ -114,7 +114,7 @@ class LineLexer:
 			self.advance()
 			if self.current_char == '.':
 				if self.peek(1) == '.':
-					#1...8
+					# 1...8 
 					pass
 				else:
 					result += '.'
@@ -134,11 +134,13 @@ class LineLexer:
 			self.advance()
 			self.column += 1
 	def skip_comment(self):
+		"""#comment"""
 		while self.current_char is not None:
 			self.advance()
 			self.column +=1
 
 	def peek(self,pos):
+		'''check next char without changing position'''
 		if self.pos + pos > len(self.line_text) - 1:
 			return
 		return self.line_text[self.pos +pos]
@@ -279,6 +281,8 @@ class Lexer:
 		    	tokens.extend(token)
 		    last_indent = space
 		    if space == 0:
+		    	# if current line do not have indent(space),
+		    	# reset indent rule back to 0
 		    	indent_rule = 0
 		    tokens.extend(line_tokens)
 		    tokens.append(Tokentype("NEWLINE",None,line_num+1,0))

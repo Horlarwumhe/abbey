@@ -355,7 +355,7 @@ class Interpreter:
 
     def visit_class_obj(self,func,func_env,args,kls=None,node=None):
         ''' visit function call of a class or class attribute
-         class ,class.method
+         class() ,class.method()
         '''
         if not isinstance(func,ast.Function):
             return func
@@ -398,6 +398,7 @@ class Interpreter:
 
         if not isinstance(function,(ast.Class_,ast.Function)):
             # 7(), s = 'hello', s()
+            # raise error
             raise TypeError_("%s is not callbale"%function,node.line)
 
         fun_kwargs = dict(zip(function.keywords.keys(), [self.visit_expression(value,env) for value in function.keywords.values()]))
@@ -453,7 +454,7 @@ class Interpreter:
 
 
     def visit_return(self,node, env):
-        ''' retur from a function'''
+        ''' return from a function'''
         exp = self.visit_expression(node.value, env) if node.value is not None else None
         raise Return(exp)
 
