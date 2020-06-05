@@ -157,7 +157,7 @@ class Expression(BaseParser):
         while True:
             try:
                 suffix = self.get_infix_parser(tokens.current.name)
-            except LexerError:
+            except ParserError:
                 break
             if suffix:
                 current_pre = self.get_precedence(tokens.current)
