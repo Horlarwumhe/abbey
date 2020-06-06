@@ -221,7 +221,7 @@ class BankAccount(name,balance):
 include BankAccount in "bank.ab"
 
 
-bank = BankAccount()
+bank = BankAccount("username",100)
 write(bank.balance) #100
 bank.withdraw(45)
 write(bank.balance) # 55
