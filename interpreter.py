@@ -3,7 +3,7 @@ import os
 import re
 
 from abbey import ast
-from abbey._types import List, Dict,String
+from abbey._types import List, Dict,String, Int
 from abbey.utils import Environment,assert_expression
 from abbey._builtins import Builtins, Str, load_builtins
 from abbey.errors import * # import all exceptions
@@ -46,7 +46,7 @@ class Operators:
             '+': operators.add,
             '-': operators.sub,
             '*': operators.mul,
-            '/': operators.truediv,
+            '/': operators.div,
             '%': operators.mod,
             '..': range,
             '...': lambda start, end: range(start, end + 1),
@@ -61,6 +61,12 @@ class Operators:
             "**":operators.sqrt,
             '<>':lambda x,y: x != y
         }
+    aug_operator = {
+    '-=':operators.sub,
+    '+=':operators.add,
+    '/=':operators.div,
+    '*=':operators.mul
+    }
     logical = {
         'and': lambda x,y:x and y,
         'or': lambda x, y: x or y,
@@ -119,8 +125,8 @@ class Interpreter:
         return String(value)
 
     def visit_number(self,node,env):
-        """nuber node"""
-        return node.value
+        """number node"""
+        return Int(node.value)
 
     def visit_statements(self,statement,env):
         ''' for nodes that has body, iterate of the body and visit all nodes
@@ -173,6 +179,8 @@ class Interpreter:
 
 
     def visit_assignment(self,node,env):
+        if not hasattr(node,'test'):
+            setattr(node,'test',False)
         left = node.left
         if isinstance(left,ast.SubscriptOperator):
             # c[key] =value
@@ -211,9 +219,19 @@ class Interpreter:
             return env.set(node.left.value,self.visit_expression(node.right, env))
 
     def visit_getitem(self,node,env):
-        """list or string or dict getitem method dict[key]"""
+        """list or string or dict getitem method dict[key], list[7:9]"""
         data  = self.visit_expression(node.left,env)
-        key = self.visit_expression(node.key,env)
+        if isinstance(node.key,slice):
+            # list[2:7]
+            start = node.key.start
+            stop = node.key.stop
+            if start:
+                start = self.visit_expression(start,env)
+            if stop:
+                stop = self.visit_expression(stop,env)
+            key = slice(start,stop)
+        else:
+            key = self.visit_expression(node.key,env)
         try:
             return data[key]
         except IndexError as e:
@@ -227,10 +245,20 @@ class Interpreter:
     def visit_setitem(self,node,env):
         """ # dict[key] = value
             list[index] = value
+            list[start:stop] = values
         """
         subscript = node.left
         data = self.visit_expression(subscript.left,env)
-        key = self.visit_expression(subscript.key,env)
+        if isinstance(subscript.key,slice):
+            start = subscript.key.start
+            stop = subscript.key.stop
+            if start:
+                start = self.visit_expression(start,env)
+            if stop:
+                stop = self.visit_expression(stop,env)
+            key = slice(start,stop)
+        else:
+            key = self.visit_expression(subscript.key,env)
         value  = self.visit_expression(node.right,env)
         if node.test:
             test_pass = self.visit_expression(node.test,env)
@@ -475,14 +503,19 @@ class Interpreter:
         ''' operators 
            1 + 8, 4 * 7
            7 == 9, 8 <= 9
+           h += 5
         '''
-
         left, right = self.visit_expression(node.left, env), self.visit_expression(node.right, env)
         if node.operator in Operators.simple_operations:
             return Operators.simple_operations[node.operator](left,right)
         elif node.operator in Operators.comaprism:
             return Operators.comaprism[node.operator](left,right)
+        elif node.operator in Operators.aug_operator:
+            # += -=
+            right = Operators.aug_operator[node.operator](left,right)
 
+            if isinstance(node.left,ast.Identifier):
+                return env.set(node.left.value,right)
         else:
             raise Exception('Invalid operator {}'.format(node.operator))
 

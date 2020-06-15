@@ -78,7 +78,7 @@ def contains(x,y):
 		return str(x) in str(y)
 	else:
 		return x in y
-def truediv(x,y):
+def div(x,y):
 	try:
 		return float(x) / float(y)
 	except (ValueError,TypeError):

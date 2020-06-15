@@ -324,13 +324,20 @@ class Expression(BaseParser):
         return ast.NotOperator(exp,not_.line)
 
     def subscript_expression(self,tokens,left):
-        '''p[1] = 98'''
+        '''p[1] = 98
+           p[9:6] = 67
+
+        '''
         self.eat(tokens,'LBRACK')
         key = self.parse_expression(tokens)
+        if tokens.current.value == ":":
+            self.eat(tokens,'COLON')
+            key2 = self.parse_expression(tokens)
+            key = slice(key,key2)
         if key is None:
             raise ParserError('Subscript operator key is required', tokens.current)
         self.eat(tokens,'RBRACK')
-        return ast.SubscriptOperator(left, key,left.line)
+        return ast.SubscriptOperator(left,key,left.line)
 
 
     def function_keys(self,tokens,fun):
@@ -392,12 +399,14 @@ class Expression(BaseParser):
 
         items = []
         while not tokens.is_end():
-            # aloows using string or identifier as dict key like javascript
+            # allows using string or identifier as dict key like javascript
             # {name:'myname'},{'name':'myname'}
             if tokens.current.name == "NAME":
                 key = self.eat(tokens,'NAME')
             elif tokens.current.name == 'STRING':
                 key = self.eat(tokens,'STRING')
+            elif tokens.current.name == 'NUMBER':
+                key = self.eat(tokens,'NUMBER')
             else:
                 break
             if key is not None:

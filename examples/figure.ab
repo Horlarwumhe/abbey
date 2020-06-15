@@ -1,0 +1,92 @@
+# this convert a number to figure
+# 66719 -> sixty-six thousand seven hundred and nineteen
+# written with abbey lang
+
+
+rules={3:'thousand',2:'hundred',6:' million'}
+tens={0:'',1:'one',2:'two',3:'three',4:'four',5:'five',6:'six',7:'seven',8:'eight',9:'Nine'}
+ty={2:'twenty',3:'thirty',4:'forty',5:'fifty',8:'eighty'}
+spe={10:'ten',11:'eleven',12:'twelve',13:'thirteen',15:'fifteen'}
+
+func figure(a):
+    fig=" "
+    try:
+        a = a.tostring()
+    catch:
+        write()
+    for i in 0...len(a) - 1:
+        le=len(a[i+1:])
+        if a[i] == '0':
+            if le ==0:#last digit
+                break
+            if le==1:
+                if a[i+1] =='0':
+                    break
+                fig+='and '+ tens[int(a[i+1])]
+                break
+            continue
+        elif le == 1: #2nd to d last
+            if a[i] =='1' and int(a[i+1]) in [1,2,3,5,0]:
+                h=a[i] + a[i+1]
+                fig+='and '+spe[int(h)]
+                break
+            elif a[i] =='1' and not int(a[i+1]) in [1,2,3,5]:
+                h=a[i+1]
+                t = tens[int(h)]
+                fig +='and #{t}teen'
+                break
+            if not int(a[i]) in [2,3,4,5,8]:
+                ty = tens[int(a[i])]
+                unit = tens[int(a[i+1])]
+                fig+='and #{ty}ty #{unit}'
+            else:
+                f = ty[int(a[i])]
+                s = tens[int(a[i+1])]
+                fig += 'and #{f} #{s}'
+            break
+        elif le==0:
+            m = tens[int(a[i])]
+            fig=' and #{m}'
+        else:
+            h=int(a[i])
+            f = tens[h]
+            t = rules[le]
+            fig+='#{f} #{t} '
+    return fig
+
+message='invalid number '
+msg='enter between 1 to 9 characters'
+func main(a):
+  try:
+    int(a)
+  catch:
+    return 'invalid number'
+  if len(a)>9:
+    return 'invalid number'
+  try:
+    a = a.tostring
+  catch:
+    write()
+  a=a.lstrip('0') #incase u put 000023
+  if len(a) <=4:
+    fig=figure(a)
+  elif len(a) ==5:
+    f = figure(a[:2])
+    r = rules[3]
+    fig='#{f} #{r} '
+    fig+=figure(a[2:])
+    fig=fig.lstrip(' and')
+  elif len(a)==6:
+    f = figure(a[:3])
+    r = rules[3]
+    fig ='#{f} #{r}'
+    fig+=figure(a[3:])
+  elif len(a) >=7: #millions
+    m=len(a)-6
+    fig=figure(a[:m])+rules[6]
+    mil = main(a[m:])
+    fig += ' #{mil}'
+  else:
+    fig=figure(a)
+  return fig.lstrip(' and')
+write(main(6532272))

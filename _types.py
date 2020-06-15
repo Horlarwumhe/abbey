@@ -29,3 +29,12 @@ class String(str):
 
 	def begins(self,name,*args):
 		return self.startswith(name)
+
+class Int(int):
+	def tostring(self):
+		return str(self)
+	def lenght(self,*args):
+		return len(str(self))
+
+	def length(self,*args):
+		return len(str(self))

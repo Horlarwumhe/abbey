@@ -43,7 +43,6 @@ def main():
 	token_stream = Tokens(tokens)
 	try:
 		program = Parser().parse_all(token_stream)
-		# print(program)
 	except AbbeySyntaxError as err:
 		if args.debug:
 			traceback.print_exc(file=sys.stdout)
@@ -64,16 +63,5 @@ def main():
 		return
 	except AbbeyModuleError as err:
 		report_error (err,err)
-
-
-def test():
-        code = input('>>># ')
-        lexer = Lexer(code)
-        tokens = lexer.tokenize()
-        token_stream = Tokens(tokens)
-        program = Parser().parse_all(token_stream)
-        code = Interpreter(program)
-        code.create_env(env)
-        return code.interpret()
 main()
         

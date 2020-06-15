@@ -219,6 +219,13 @@ class LineLexer:
 				self.advance()
 				found.append(token)
 				continue
+			elif self.current_char in ['+','-','*','/'] and self.peek(1) == '=':
+				token = self.current_char + self.peek(1)
+				token = Tokentype('OPERATOR',token,self.line_num + 1, column)
+				self.advance()
+				self.advance()
+				found.append(token)
+				continue
 			if self.current_char in self.operators:
 				token = Tokentype("OPERATOR",self.current_char,self.line_num + 1,column)
 				found.append(token)
