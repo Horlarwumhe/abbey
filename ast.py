@@ -1,22 +1,13 @@
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 from typing import Any, ClassVar, Tuple
 
 from abbey.errors import TypeError_
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Node:
     fields: ClassVar[Tuple[str, ...]] = ()
     exclude: ClassVar[Tuple[str, ...]] = ()  # excluded fields in str representation
-
-    def __init__(self, *fields_):
-        if len(self.fields) != len(fields_):
-            # RuntimeError, for internal use only
-            raise RuntimeError('%s Node, takes %s args [%s] but %s  are give' % (
-                self.__class__.__name__, len(self.fields), ','.join(self.fields), len(fields_)
-            ))
-        for field_name, field_value in zip(self.fields, fields_):
-            setattr(self, field_name, field_value)
 
     def __str__(self):
         s = f"<{self.__class__.__name__} "
@@ -39,7 +30,7 @@ class Node:
         return str(self)
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Number(Node):
     value: Any
     line: Any
@@ -47,7 +38,7 @@ class Number(Node):
     fields: ClassVar[Tuple[str, ...]] = ('value', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class String(Node):
     value: Any
     line: Any
@@ -55,7 +46,7 @@ class String(Node):
     fields: ClassVar[Tuple[str, ...]] = ('value', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Identifier(Node):
     value: Any
     line: Any
@@ -63,7 +54,7 @@ class Identifier(Node):
     fields: ClassVar[Tuple[str, ...]] = ('value', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Function(Node):
     name: Any
     arguements: Any
@@ -83,7 +74,7 @@ class Function(Node):
                 raise TypeError_(f"TypeError_ ,{call.name}() got unexpected keyword arguments {k}", call.line)
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Assignment(Node):
     left: Any
     right: Any
@@ -94,7 +85,7 @@ class Assignment(Node):
     fields: ClassVar[Tuple[str, ...]] = ('left', 'right', 'test', 'right2', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class BinaryOperator(Node):
     operator: Any
     left: Any
@@ -103,14 +94,14 @@ class BinaryOperator(Node):
     fields: ClassVar[Tuple[str, ...]] = ('operator', 'left', 'right', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class NotOperator(Node):
     right: Any
     line: Any
     fields: ClassVar[Tuple[str, ...]] = ('right', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Call(Node):
     name: Any
     arguements: Any
@@ -120,7 +111,7 @@ class Call(Node):
     fields: ClassVar[Tuple[str, ...]] = ("name", "arguements", "keywords", "line")
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Condition(Node):
     test: Any
     if_body: Any
@@ -136,7 +127,7 @@ class Condition(Node):
         )
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class ConditionElif(Node):
     test: Any
     body: Any
@@ -146,7 +137,7 @@ class ConditionElif(Node):
     exclude: ClassVar[Tuple[str, ...]] = ('body',)
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Match(Node):
     test: Any
     patterns: Any
@@ -159,7 +150,7 @@ class Match(Node):
         return f"{self.__class__.__name__}, test = {self.test}, pattern = {len(self.patterns)}, line = {self.line}"
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class MatchPattern(Node):
     pattern: Any
     body: Any
@@ -169,7 +160,7 @@ class MatchPattern(Node):
     exclude: ClassVar[Tuple[str, ...]] = ('body',)
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class WhileLoop(Node):
     test: Any
     body: Any
@@ -179,7 +170,7 @@ class WhileLoop(Node):
     exclude: ClassVar[Tuple[str, ...]] = ('body',)
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class ForLoop(Node):
     var_name: Any
     collection: Any
@@ -190,7 +181,7 @@ class ForLoop(Node):
     exclude: ClassVar[Tuple[str, ...]] = ('body',)
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Break(Node):
     test: Any
     line: Any
@@ -198,7 +189,7 @@ class Break(Node):
     fields: ClassVar[Tuple[str, ...]] = ('test', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Continue(Node):
     test: Any
     line: Any
@@ -206,7 +197,7 @@ class Continue(Node):
     fields: ClassVar[Tuple[str, ...]] = ('test', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Return(Node):
     value: Any
     line: Any
@@ -214,7 +205,7 @@ class Return(Node):
     fields: ClassVar[Tuple[str, ...]] = ('value', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Array(Node):
     items: Any
     line: Any
@@ -222,7 +213,7 @@ class Array(Node):
     fields: ClassVar[Tuple[str, ...]] = ('items', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Dictionary(Node):
     items: Any
     line: Any
@@ -230,7 +221,7 @@ class Dictionary(Node):
     fields: ClassVar[Tuple[str, ...]] = ('items', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class SubscriptOperator(Node):
     left: Any
     key: Any
@@ -239,13 +230,10 @@ class SubscriptOperator(Node):
     fields: ClassVar[Tuple[str, ...]] = ('left', 'key', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Program(Node):
     body: Any
-    line: Any
-
-    def __init__(self, body, line=None):
-        self.body = body
+    line: InitVar[Any] = None
 
     def __str__(self):
         return "<Programs statements=%s>" % len(self.body)
@@ -254,7 +242,7 @@ class Program(Node):
         return [node for node in self.body if node.__class__.__name__.lower() == name]
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Objcall(Node):
     obj: Any
     attr: Any
@@ -264,7 +252,7 @@ class Objcall(Node):
     fields: ClassVar[Tuple[str, ...]] = ('obj', 'attr', 'arguements', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Try(Node):
     body: Any
     catch_body: Any
@@ -275,7 +263,7 @@ class Try(Node):
     exclude: ClassVar[Tuple[str, ...]] = ('body', 'catch_body')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class ForEach(Node):
     obj: Any
     var_name: Any
@@ -286,7 +274,7 @@ class ForEach(Node):
     exclude: ClassVar[Tuple[str, ...]] = ('body',)
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Use(Node):
     module: Any
     alias: Any
@@ -295,7 +283,7 @@ class Use(Node):
     fields: ClassVar[Tuple[str, ...]] = ('module', 'alias', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Include(Node):
     function: Any
     file: Any
@@ -304,7 +292,7 @@ class Include(Node):
     fields: ClassVar[Tuple[str, ...]] = ('function', 'file', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class LogicalOperator(Node):
     # in, and, or
     left: Any
@@ -315,7 +303,7 @@ class LogicalOperator(Node):
     fields: ClassVar[Tuple[str, ...]] = ('left', 'right', 'operator', 'line')
 
 
-@dataclass(init=False, repr=False, eq=False)
+@dataclass(repr=False, eq=False)
 class Class_(Node):
     name: Any
     arguements: Any
